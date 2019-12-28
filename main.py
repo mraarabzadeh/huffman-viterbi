@@ -1,5 +1,5 @@
 import queue
-
+from noise import noise
 
 
 class huffman():
@@ -43,13 +43,14 @@ def run():
     dic = {}
     dic = walk_tree(base, '', dic)
     print(dic)
-run()
+#run()
 
 class convolotional():
     def __init__(self):
         self.state = 00
     def encode(self, string):
         output = ''
+        self.state = 00
         for i in string:
             if i == '0' and self.state == 00:
                 output += '00'
@@ -96,24 +97,46 @@ class convolotional():
         return r
     def decode(self, string):
         res = ['','','','']
+        pre_res = ['','','','']
         matrix = [[0 for x in range(int(len(string)/2) + 1)] for y in range(4)]
         matrix[1][0] = 10000
         matrix[2][0] = 10000
         matrix[3][0] = 10000
 
         p = [string[i] + string[i+1] for i in range(0,int(len(string)),2)] 
-        for i in range(1, len(p)+1):
+        for i in range(1, len(p) + 1):
             for j in range(4):
                 status = self.drived_from(j)
-                if self.calc_diff(p[i - 1], status[0][1]) + matrix[status[0][0]][i-1] < \
-                    self.calc_diff(p[i - 1], status[1][1]) + matrix[status[1][0]][i-1]:
-                    matrix[j][i] = self.calc_diff(p[i - 1], status[0][1]) + matrix[status[0][0]][i-1]
-                    res[j] += status[0][2]
+                l = self.calc_diff(p[i - 1], status[0][1]) + matrix[status[0][0]][i-1]
+                r = self.calc_diff(p[i - 1], status[1][1]) + matrix[status[1][0]][i-1]
+                if l < r:
+                    matrix[j][i] = l
+                    res[j] = pre_res[status[0][0]] + str(status[0][2])
                 else:
-                    matrix[j][i] = self.calc_diff(p[i - 1], status[1][1]) + matrix[status[1][0]][i-1]
-                    res[j] += status[1][2]
+                    matrix[j][i] = r
+                    res[j] = pre_res[status[1][0]] + str(status[1][2])
+            for j in range(4):
+                pre_res[j] = res[j]
+        # for x in range(4):
+        #     print(matrix[x])
+        indx = 0
         for i in range(4):
-            print(res[i] , matrix[i][-1])
+            # print(res[i] , matrix[i][-1])
+            if matrix[i][-1] < matrix[indx][-1]:
+                indx = i
+        return res[indx]
 s = convolotional()
-print(s.encode('1110110110'))
-(s.decode(s.encode('1110110110')))
+print('the input stream: 1110110110')
+print('encoded stream:' + s.encode('1110110110'))
+print('decoded stream:' + s.decode(s.encode('1110110110')))
+
+my_name = 'mohammadrezaarabzadeh'
+binari = ''.join(format(ord(i), 'b') for i in my_name)
+noisi_binari = noise(binari)
+print('encoded stream of noisy name:' + s.encode(noisi_binari))
+decode_out  = s.decode(s.encode(noisi_binari))
+print('decoded stream of noisy name:' + decode_out)
+li = ''
+for i in range(0,len(decode_out), 7):
+    li+=(chr(int(decode_out[i:i+7], base = 2)))
+print('recovered name: '+ li)
